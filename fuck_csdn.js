@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CSDN
 // @namespace    http://tampermonkey.net/
-// @version      0.1.1
+// @version      0.1.4
 // @description  去除登录弹窗，代码免登录复制
 // @author       You
 // @match        https://blog.csdn.net/*/article/details/*
@@ -14,6 +14,9 @@
 
 (function() {
     'use strict';
+    //移除主页链接，将主页用于点击复制
+    document.querySelector('.toolbar-logo > a').removeAttribute('href')
+    copyPcContentListen()
     let host = location.host
     if(host.indexOf('zhihu')>-1){
         cleanZhuhu()
@@ -27,8 +30,8 @@ function cleanCsdn(){
     new Promise((resolve, reject) => {
         setTimeout(function() {
             // 关闭登录弹窗
-            let boxTag =  document.querySelector("#passportbox");
-            if(boxTag!=null)boxTag.setAttribute('style','display:none;')
+            let boxTag = document.querySelector("#passportbox");
+            if(boxTag!=null)click("#passportbox > span")
 
             // 继续浏览器浏览
             let pageContinueTags = document.querySelectorAll(".wap-shadowbox")
@@ -47,11 +50,10 @@ function cleanCsdn(){
         },1000);
     }).then((data) => {
         // 关闭常驻页面底部的 前往csdn按钮
-        let openAppTags =  document.querySelectorAll(".feed-Sign-style-new")
+        let openAppTags = document.querySelectorAll(".feed-Sign-style-new")
         for(let opTag of openAppTags){
             opTag.setAttribute('class','')
         }
-       // if(openAppTag!=null)openAppTag.setAttribute('style','display:none;')
         // 移出正文 打开app按钮
         $('.btn_open_app_prompt_div').remove()
         //移出广告
@@ -113,8 +115,8 @@ function cleanCsdn(){
             }
         }
         // 去除不定时弹出的登录框
-        let boxTag =  document.querySelector("#passportbox");
-        if(boxTag!=null)boxTag.setAttribute('style','display:none;')
+        let boxTag = document.querySelector("#passportbox");
+        if(boxTag!=null)click("#passportbox > span")
 
         //去除令人作呕的点击列表就自动下载app
         let links = document.querySelectorAll(".recommend-jump-app.open_app_channelCode")
@@ -125,7 +127,7 @@ function cleanCsdn(){
 
 }
 
-function  cleanZhuhu(){
+function cleanZhuhu(){
     let interv = setInterval(function() {
         console.log('监听弹窗')
         let closeLogin = document.querySelector(".Button.Modal-closeButton.Button--plain")
@@ -142,3 +144,29 @@ function  cleanZhuhu(){
 
 }
 
+//点击动作
+function click(style){
+    let styleTag = document.querySelector(style)
+    if(styleTag!=null)styleTag.click()
+}
+
+function copyPcContentListen(){
+    //监听home点击事件
+    let homeTag = document.querySelector(".toolbar-logo")
+    if(homeTag==null)return
+    homeTag.addEventListener('click',function(e){
+        var txt = window.getSelection?window.getSelection():document.selection.createRange().text;
+        if(txt!=null&&txt!=''){
+            let body = document.body
+            let div = document.createElement('div')
+            div.innerHTML='<textarea  id="copyId"  >'+txt+'</textarea >'
+            body.append(div)
+            let copyText = document.getElementById("copyId")
+            copyText.select()
+            document.execCommand('Copy')
+            $('#copyId').remove()
+        }else{
+            alert('请选中复制文本')
+        }
+    })
+}
