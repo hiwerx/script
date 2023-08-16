@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         CSDN
+// @name         CSDN优化
 // @namespace    http://tampermonkey.net/
-// @version      0.1.4
+// @version      0.1.9
 // @description  去除登录弹窗，代码免登录复制
-// @author       You
+// @author       hiwerx
 // @match        https://blog.csdn.net/*/article/details/*
 // @match        https://*.blog.csdn.net/article/details/*
 // @match        *://*.zhihu.com/*
@@ -14,13 +14,15 @@
 
 (function() {
     'use strict';
-    //移除主页链接，将主页用于点击复制
-    document.querySelector('.toolbar-logo > a').removeAttribute('href')
-    copyPcContentListen()
+   
     let host = location.host
     if(host.indexOf('zhihu')>-1){
         cleanZhuhu()
     }else if(host.indexOf('csdn')>-1){
+        //移除主页链接，将主页用于点击复制
+        $('.toolbar-logo > a').removeAttr('href')
+        $('.toolbar-logo > a > img').attr('title','点此复制选中文本')
+        copyPcContentListen()
         cleanCsdn()
     }
     // Your code here...
@@ -93,14 +95,19 @@ function cleanCsdn(){
     if(openCodeTage!=null)openCodeTage.click()
 
     // 去除点击查看更多内容后弹出框
-    let tanchTags = document.querySelectorAll(".app-bt-cance.read_more_btn")
-    for(let tanchTag of tanchTags){
+    let tanchTags = document.querySelector(".app-bt-cance.read_more_btn")
+    if(tanchTags!=null)tanchTags.click()
+   /* for(let tanchTag of tanchTags){
         tanchTag.click()
-    }
+    }*/
 
     // 去除公众号广告
     let extensionBox = document.querySelector('#blogExtensionBox')
     if(extensionBox!=null)extensionBox.setAttribute('style','display:none;')
+
+    // 去除手机网页打开小程序按钮
+    let weixin = document.querySelector('.feed-Sign-weixin')
+    if(weixin!=null)weixin.removeAttribute('class')
 
     // 继续监控页面
     setInterval(function() {
@@ -151,7 +158,7 @@ function click(style){
 }
 
 function copyPcContentListen(){
-    //监听home点击事件
+    //监听csdn home点击事件
     let homeTag = document.querySelector(".toolbar-logo")
     if(homeTag==null)return
     homeTag.addEventListener('click',function(e){
